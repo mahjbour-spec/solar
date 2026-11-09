@@ -178,6 +178,7 @@ function exp(){try{localStorage.setItem('fuelBk',Date.now())}catch(e){}setTimeou
 function rest(i){const r=new FileReader();r.onload=()=>{try{D=norm(JSON.parse(r.result));save();R()}catch(e){alert('ملف غير صالح')}};r.readAsText(i.files[0])}
 /* ===== المزامنة بين الأجهزة (Firebase) — ضع إعدادات مشروعك هنا ===== */
 const FB={apiKey:'AIzaSyB4MvYcvV1rXJs2c3qV4cb3rYXFhehmqUE',authDomain:'hamz-694e4.firebaseapp.com',databaseURL:'https://hamz-694e4-default-rtdb.firebaseio.com',projectId:'hamz-694e4',storageBucket:'hamz-694e4.firebasestorage.app',messagingSenderId:'18902383616',appId:'1:18902383616:web:e9a5c939211177121d6ce5'};
+const FB_EMAIL='fuel@hamz-694e4.app';
 let fuid=null,lastSent='',first=true;
 const st=t=>{const e=document.getElementById('st');if(e)e.textContent=t};
 function push(){pt=0;if(!fuid)return;const v=JSON.stringify(D);if(v===lastSent)return;lastSent=v;firebase.database().ref('fuel/'+fuid+'/data').set(v).catch(()=>st('⚠ خطأ مزامنة'))}
@@ -188,8 +189,8 @@ D=nd;lastSent=v;try{localStorage.setItem('fuelDB',v)}catch(e){}later()}
 function startSync(){const db=firebase.database(),ref=db.ref('fuel/'+fuid+'/data');
 db.ref('.info/connected').on('value',x=>st(x.val()?'🟢 متصل':'🔴 غير متصل'));
 ref.on('value',x=>{const v=x.val();if(v===null){first=false;push();return}if(v===lastSent||pt)return;applyRemote(v)},()=>st('⚠ لا صلاحية'))}
-function showLogin(){lg.innerHTML=`<div class="mb" style="z-index:60;align-items:center"><form onsubmit="return doLogin(this)" style="border-radius:16px;margin:12px"><h2>🔐 تسجيل الدخول</h2><label>البريد الإلكتروني<input name="em" type="email" autocomplete="username" required></label><label>كلمة المرور<input name="pw" type="password" autocomplete="current-password" required></label><button class="btn">دخول</button></form></div>`}
-function doLogin(fm){firebase.auth().signInWithEmailAndPassword(fm.em.value.trim(),fm.pw.value).catch(e=>alert('فشل الدخول: '+e.code));return false}
+function showLogin(){lg.innerHTML=`<div class="mb" style="z-index:60;align-items:center"><form onsubmit="return doLogin(this)" style="border-radius:16px;margin:12px"><h2>🔐 أدخل كلمة المرور</h2><label>كلمة المرور<input name="pw" type="password" autocomplete="current-password" required autofocus></label><button class="btn">دخول</button></form></div>`}
+function doLogin(fm){firebase.auth().signInWithEmailAndPassword(FB_EMAIL,fm.pw.value).catch(e=>alert(['auth/invalid-credential','auth/wrong-password','auth/invalid-login-credentials'].includes(e.code)?'كلمة المرور غير صحيحة':e.code=='auth/user-not-found'?'لم يُنشأ المستخدم في Firebase بعد':e.code=='auth/too-many-requests'?'محاولات كثيرة، انتظر قليلاً':'فشل الدخول: '+e.code));return false}
 function out(){if(confirm('تسجيل الخروج؟'))firebase.auth().signOut()}
 function initSync(){if(!FB.apiKey||typeof firebase==='undefined'){st('💾 محلي فقط');return}
 firebase.initializeApp(FB);
